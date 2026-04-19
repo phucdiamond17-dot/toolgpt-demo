@@ -1,63 +1,140 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phúc Baccarat</title>
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000">
-
-<link rel="apple-touch-icon" href="icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Phúc Baccarat">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phúc Baccarat PRO</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#000;color:#fff;text-align:center}
-#splash{position:fixed;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center}
-.container{display:none;padding:20px}
-button{width:80px;height:50px;margin:5px;border:none;border-radius:10px;color:#fff}
-.b{background:#1e88e5}.p{background:#e53935}.t{background:#43a047}
-.bar{height:20px;background:#333;margin-top:20px;border-radius:10px}
-.fill{height:100%;background:linear-gradient(to right,red,blue);width:50%}
+body {
+  background: #000;
+  color: #fff;
+  text-align: center;
+  font-family: Arial;
+}
+
+button {
+  padding: 20px;
+  margin: 10px;
+  font-size: 20px;
+  border: none;
+  border-radius: 15px;
+  width: 80px;
+}
+
+.b { background: #2196F3; }
+.p { background: #f44336; }
+.t { background: #4CAF50; }
+
+.bar {
+  width: 80%;
+  height: 20px;
+  margin: 20px auto;
+  background: #333;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: linear-gradient(to right, red, blue);
+  width: 50%;
+  transition: 0.5s;
+}
+
+.history {
+  margin-top: 20px;
+}
+.dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin: 3px;
+}
 </style>
 </head>
 
 <body>
 
-<div id="splash">
-  <h1>🔥 Phúc Baccarat</h1>
+<h2>🔥 Phúc Baccarat PRO</h2>
+
+<button class="b" onclick="add('B')">B</button>
+<button class="p" onclick="add('P')">P</button>
+<button class="t" onclick="add('T')">T</button>
+
+<div class="bar">
+  <div class="fill" id="bar"></div>
 </div>
 
-<div class="container" id="app">
-  <button class="b" onclick="play('B')">B</button>
-  <button class="p" onclick="play('P')">P</button>
-  <button class="t" onclick="play('T')">T</button>
+<div id="percent">P 50% - B 50%</div>
+<div id="suggest"></div>
 
-  <div class="bar"><div id="fill" class="fill"></div></div>
-  <div id="percent">P 50% - B 50%</div>
-</div>
+<div class="history" id="history"></div>
+
+<br>
+<button onclick="reset()">Reset</button>
 
 <script>
-let p=50;
+let data = JSON.parse(localStorage.getItem("bac") || "[]");
 
-setTimeout(()=>{
-  splash.style.display="none";
-  app.style.display="block";
-},1500);
-
-function play(t){
-  let r=Math.random()*10;
-  if(t=='B')p-=r;
-  if(t=='P')p+=r;
-  if(p>90)p=90;if(p<10)p=10;
-  let b=100-p;
-  percent.innerText=`P ${p.toFixed(0)}% - B ${b.toFixed(0)}%`;
-  fill.style.width=b+"%";
+function save() {
+  localStorage.setItem("bac", JSON.stringify(data));
 }
 
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js');
+function add(x) {
+  data.push(x);
+  if (data.length > 20) data.shift();
+  save();
+  render();
 }
+
+function reset() {
+  data = [];
+  save();
+  render();
+}
+
+function analyze() {
+  let last = data.slice(-6);
+  let b = last.filter(x=>x=="B").length;
+  let p = last.filter(x=>x=="P").length;
+
+  let total = b + p;
+  if (total == 0) return [50,50,"CHỜ"];
+
+  let pb = Math.round((p/total)*100);
+  let bb = 100 - pb;
+
+  let suggest = "BỎ";
+  if (pb > 60) suggest = "NÊN P";
+  else if (bb > 60) suggest = "NÊN B";
+
+  return [pb, bb, suggest];
+}
+
+function render() {
+  let [p,b,s] = analyze();
+
+  document.getElementById("percent").innerText =
+    "P "+p+"% - B "+b+"%";
+
+  document.getElementById("bar").style.width = p+"%";
+  document.getElementById("suggest").innerText = "👉 "+s;
+
+  let h = document.getElementById("history");
+  h.innerHTML = "";
+
+  data.forEach(x=>{
+    let d = document.createElement("div");
+    d.className = "dot";
+    if (x=="B") d.style.background="#2196F3";
+    if (x=="P") d.style.background="#f44336";
+    if (x=="T") d.style.background="#4CAF50";
+    h.appendChild(d);
+  });
+}
+
+render();
 </script>
 
 </body>
