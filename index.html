@@ -6,135 +6,184 @@
 
 <style>
 body {
-  background: #000;
-  color: #fff;
-  text-align: center;
-  font-family: Arial;
+  background:#000;
+  color:#fff;
+  text-align:center;
+  font-family:Arial;
 }
 
 button {
-  padding: 20px;
-  margin: 10px;
-  font-size: 20px;
-  border: none;
-  border-radius: 15px;
-  width: 80px;
+  padding:15px;
+  margin:5px;
+  font-size:18px;
+  border:none;
+  border-radius:10px;
+  width:70px;
 }
 
-.b { background: #2196F3; }
-.p { background: #f44336; }
-.t { background: #4CAF50; }
+.b{background:#2196F3}
+.p{background:#f44336}
+.t{background:#4CAF50}
 
-.bar {
-  width: 80%;
-  height: 20px;
-  margin: 20px auto;
-  background: #333;
-  border-radius: 20px;
-  overflow: hidden;
+.bar{
+  width:80%;
+  height:20px;
+  margin:15px auto;
+  background:#333;
+  border-radius:20px;
 }
 
-.fill {
-  height: 100%;
-  background: linear-gradient(to right, red, blue);
-  width: 50%;
-  transition: 0.5s;
+.fill{
+  height:100%;
+  background:linear-gradient(to right,red,blue);
+  width:50%;
 }
 
-.history {
-  margin-top: 20px;
+.grid{
+  display:grid;
+  grid-template-columns:repeat(12,20px);
+  gap:4px;
+  justify-content:center;
+  margin-top:20px;
 }
-.dot {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin: 3px;
+
+.cell{
+  width:20px;
+  height:20px;
+  border-radius:50%;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🔥 Phúc Baccarat PRO</h2>
+<h2>🔥 Baccarat PRO</h2>
 
 <button class="b" onclick="add('B')">B</button>
 <button class="p" onclick="add('P')">P</button>
 <button class="t" onclick="add('T')">T</button>
 
 <div class="bar">
-  <div class="fill" id="bar"></div>
+  <div id="bar" class="fill"></div>
 </div>
 
 <div id="percent">P 50% - B 50%</div>
-<div id="suggest"></div>
+<div id="suggest">💡 CHỜ</div>
 
-<div class="history" id="history"></div>
+<div class="grid" id="grid"></div>
 
 <br>
 <button onclick="reset()">Reset</button>
 
 <script>
+
 let data = JSON.parse(localStorage.getItem("bac") || "[]");
 
-function save() {
+function save(){
   localStorage.setItem("bac", JSON.stringify(data));
 }
 
-function add(x) {
+function add(x){
   data.push(x);
-  if (data.length > 20) data.shift();
+  if(data.length > 60) data.shift();
   save();
   render();
 }
 
-function reset() {
+function reset(){
   data = [];
   save();
   render();
 }
 
-function analyze() {
-  let last = data.slice(-6);
+function analyze(){
+  let last = data.slice(-20);
+
+  if(last.length < 5) return [50,50,"CHỜ"];
+
   let b = last.filter(x=>x=="B").length;
   let p = last.filter(x=>x=="P").length;
-
   let total = b + p;
-  if (total == 0) return [50,50,"CHỜ"];
 
   let pb = Math.round((p/total)*100);
   let bb = 100 - pb;
 
-  let suggest = "BỎ";
-  if (pb > 60) suggest = "NÊN P";
-  else if (bb > 60) suggest = "NÊN B";
+  // ===== detect streak =====
+  let streak = 1;
+  for(let i=last.length-1;i>0;i--){
+    if(last[i]===last[i-1]) streak++;
+    else break;
+  }
 
-  return [pb, bb, suggest];
+  let pattern = "";
+  let suggestion = "CHỜ";
+
+  // cầu bệt
+  if(streak >= 3){
+    pattern = "CẦU BỆT";
+    suggestion = last[last.length-1];
+  }
+
+  // cầu 1-1
+  let pingpong = true;
+  for(let i=last.length-1;i>last.length-6;i--){
+    if(last[i] === last[i-1]) pingpong = false;
+  }
+
+  if(pingpong){
+    pattern = "CẦU 1-1";
+    suggestion = last[last.length-1] === "B" ? "P" : "B";
+  }
+
+  // gãy cầu
+  if(streak === 1 && last.length > 5){
+    pattern = "GÃY CẦU";
+    suggestion = "CHỜ";
+  }
+
+  return [pb, bb, pattern + " → " + suggestion];
 }
 
-function render() {
+function render(){
   let [p,b,s] = analyze();
 
   document.getElementById("percent").innerText =
-    "P "+p+"% - B "+b+"%";
+    "P " + p + "% - B " + b + "%";
 
-  document.getElementById("bar").style.width = p+"%";
-  document.getElementById("suggest").innerText = "👉 "+s;
+  document.getElementById("bar").style.width = p + "%";
 
-  let h = document.getElementById("history");
-  h.innerHTML = "";
+  document.getElementById("suggest").innerText =
+    "💡 " + s;
+
+  // highlight
+  if(s.includes("NÊN B")){
+    document.body.style.boxShadow = "0 0 20px blue";
+  }
+  else if(s.includes("NÊN P")){
+    document.body.style.boxShadow = "0 0 20px red";
+  }
+  else{
+    document.body.style.boxShadow = "none";
+  }
+
+  // render grid
+  let grid = document.getElementById("grid");
+  grid.innerHTML = "";
 
   data.forEach(x=>{
     let d = document.createElement("div");
-    d.className = "dot";
-    if (x=="B") d.style.background="#2196F3";
-    if (x=="P") d.style.background="#f44336";
-    if (x=="T") d.style.background="#4CAF50";
-    h.appendChild(d);
+    d.className = "cell";
+
+    if(x=="B") d.style.background="#2196F3";
+    if(x=="P") d.style.background="#f44336";
+    if(x=="T") d.style.background="#4CAF50";
+
+    grid.appendChild(d);
   });
 }
 
 render();
+
 </script>
 
 </body>
