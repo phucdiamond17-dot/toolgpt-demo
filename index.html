@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phúc Baccarat</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000">
+
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Phúc Baccarat">
+
+<style>
+body{margin:0;font-family:Arial;background:#000;color:#fff;text-align:center}
+#splash{position:fixed;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center}
+.container{display:none;padding:20px}
+button{width:80px;height:50px;margin:5px;border:none;border-radius:10px;color:#fff}
+.b{background:#1e88e5}.p{background:#e53935}.t{background:#43a047}
+.bar{height:20px;background:#333;margin-top:20px;border-radius:10px}
+.fill{height:100%;background:linear-gradient(to right,red,blue);width:50%}
+</style>
+</head>
+
+<body>
+
+<div id="splash">
+  <h1>🔥 Phúc Baccarat</h1>
+</div>
+
+<div class="container" id="app">
+  <button class="b" onclick="play('B')">B</button>
+  <button class="p" onclick="play('P')">P</button>
+  <button class="t" onclick="play('T')">T</button>
+
+  <div class="bar"><div id="fill" class="fill"></div></div>
+  <div id="percent">P 50% - B 50%</div>
+</div>
+
+<script>
+let p=50;
+
+setTimeout(()=>{
+  splash.style.display="none";
+  app.style.display="block";
+},1500);
+
+function play(t){
+  let r=Math.random()*10;
+  if(t=='B')p-=r;
+  if(t=='P')p+=r;
+  if(p>90)p=90;if(p<10)p=10;
+  let b=100-p;
+  percent.innerText=`P ${p.toFixed(0)}% - B ${b.toFixed(0)}%`;
+  fill.style.width=b+"%";
+}
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+
+</body>
+</html>
